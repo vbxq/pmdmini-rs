@@ -1,9 +1,0 @@
-[Desktop Entry]
-Name=PMDmini GUI
-Comment=GUI player for PC-98 PMD music files
-Exec=pmdmini-gui
-Icon=pmdmini-gui
-Terminal=false
-Type=Application
-Categories=Audio;AudioVideo;Player;
-MimeType=audio/x-pmd;

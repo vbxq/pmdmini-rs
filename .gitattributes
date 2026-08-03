@@ -1,9 +1,0 @@
-# pmd music file as non code
-*.m linguist-vendored
-*.M linguist-vendored
-*.m2 linguist-vendored
-*.M2 linguist-vendored
-*.m26 linguist-vendored
-*.M26 linguist-vendored
-*.m86 linguist-vendored
-*.M86 linguist-vendored
