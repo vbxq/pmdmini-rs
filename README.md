@@ -2,6 +2,8 @@
 
 GUI player for PC-98 PMD music files (.M/.M2/.M26/.M86) on Windows, Linux and browsers.
 
+<img src="resources/screenshot.png" width="800">
+
 ## Native build
 
 Install Rust and the development packages required by your window and audio
