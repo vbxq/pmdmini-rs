@@ -1,9 +1,15 @@
 name: CI
 
+run-name: CI · ${{ inputs.name }}
+
 on:
-  push:
-  pull_request:
   workflow_dispatch:
+    inputs:
+      name:
+        description: CI run name
+        required: true
+        default: manual
+        type: string
 
 permissions:
   contents: read
