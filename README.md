@@ -2,6 +2,8 @@
 
 GUI player for PC-98 PMD music files (.M/.M2/.M26/.M86) on Windows, Linux and browsers.
 
+**Try it from your browser ! https://pmdmini.celeste.gg**
+
 <img src="resources/screenshot.png" width="800">
 
 ## Native build
