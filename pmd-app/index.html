@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#1b1b1b">
+    <link rel="icon" href="data:,">
+    <title>pmdmini</title>
+    <style>
+        html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #1b1b1b;
+        }
+
+        #pmdmini_canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            touch-action: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="pmdmini_canvas" tabindex="0"></canvas>
+    <link data-trunk rel="rust" data-bin="pmd-app" data-wasm-opt="z">
+</body>
+</html>

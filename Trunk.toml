@@ -1,0 +1,8 @@
+trunk-version = ">=0.21.0"
+
+[build]
+target = "pmd-app/index.html"
+dist = "dist"
+public_url = "/"
+filehash = true
+minify = "on_release"

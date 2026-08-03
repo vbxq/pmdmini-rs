@@ -1,0 +1,18 @@
+[package]
+name = "pmd-tools"
+version.workspace = true
+edition = "2021"
+license = "AGPL-3.0-only"
+description = "Reference and diagnostic tools for the pure-Rust PMD port"
+
+[dependencies]
+encoding_rs = "0.8"
+pmd-core = { path = "../pmd-core" }
+
+[[bin]]
+name = "pmd-tools"
+path = "src/main.rs"
+
+[[bin]]
+name = "convert-shinonome"
+path = "src/bin/convert-shinonome.rs"

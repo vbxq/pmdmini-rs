@@ -1,0 +1,52 @@
+[package]
+name = "pmd-app"
+version.workspace = true
+edition = "2021"
+license = "AGPL-3.0-only"
+description = "Native and web egui frontend for the pure-Rust PMD player"
+
+[dependencies]
+eframe = { version = "0.35", default-features = true }
+pmd-core = { path = "../pmd-core" }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+cpal = "0.17"
+png = "0.17"
+crossbeam-queue = "0.3"
+rfd = "0.15"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = "0.3"
+log = "0.4"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = [
+    "AudioBuffer",
+    "AudioBufferSourceNode",
+    "AudioContext",
+    "AudioContextOptions",
+    "AudioDestinationNode",
+    "AudioNode",
+    "AudioParam",
+    "AudioScheduledSourceNode",
+    "Blob",
+    "CanvasRenderingContext2d",
+    "DataTransfer",
+    "DragEvent",
+    "Document",
+    "Element",
+    "Event",
+    "EventTarget",
+    "File",
+    "FileList",
+    "GainNode",
+    "HtmlCanvasElement",
+    "HtmlElement",
+    "HtmlInputElement",
+    "ImageData",
+    "Node",
+    "TextMetrics",
+    "Performance",
+    "Storage",
+    "Window",
+] }
