@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  native:
+    name: Native tests and lint (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Cache Cargo artifacts
+        uses: Swatinem/rust-cache@v2
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libx11-dev libxkbcommon-dev libwayland-dev
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+      - name: Check workspace
+        run: cargo check --workspace --all-targets --locked
+      - name: Run Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - name: Run workspace tests
+        run: cargo test --workspace --all-targets --locked
+      - name: Build native release
+        run: cargo build --workspace --release --locked
+
+  wasm:
+    name: Wasm release bundle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: clippy
+      - name: Cache Cargo artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-wasm-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-wasm-cargo-
+      - name: Check wasm target
+        run: cargo check -p pmd-app --target wasm32-unknown-unknown
+      - name: Lint wasm target
+        run: cargo clippy -p pmd-app --target wasm32-unknown-unknown --lib -- -D warnings
+      - name: Install Trunk
+        env:
+          CFLAGS: -DLIBDEFLATE_ASSEMBLER_DOES_NOT_SUPPORT_AVX_VNNI -DLIBDEFLATE_ASSEMBLER_DOES_NOT_SUPPORT_AVX512VNNI -DLIBDEFLATE_ASSEMBLER_DOES_NOT_SUPPORT_VPCLMULQDQ
+        run: cargo install trunk --locked --version 0.21.14
+      - name: Build optimized browser bundle
+        run: trunk build --release
+
+  hygiene:
+    name: Safety and repository hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Check safety and repository hygiene
+        shell: bash
+        run: |
+          if rg -n --glob '*.rs' '(^|[^[:alnum:]_])unsafe[[:space:]]*(\{|fn|impl|trait|extern|static|union)' .; then
+            echo 'unsafe Rust syntax found'
+            exit 1
+          fi
+
+          if git ls-files | grep -Eiq '\.(c|cc|cpp|cxx|h|hh|hpp|hxx)$'; then
+            echo 'C/C++ source or header tracked'
+            exit 1
+          fi
+          if rg -n --glob 'Cargo.toml' '^[[:space:]]*(cc|bindgen|cxx|cmake)[[:space:]]*=' .; then
+            echo 'native bridge dependency or invocation found'
+            exit 1
+          fi
+          if rg -n --glob '*.rs' 'extern[[:space:]]+"C"|#\[[[:space:]]*link' .; then
+            echo 'FFI bridge declaration found'
+            exit 1
+          fi

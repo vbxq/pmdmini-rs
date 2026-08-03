@@ -1,0 +1,96 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag
+        required: true
+        default: v1.0.0
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-gnu
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: release
+
+      - uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.16.0
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-zigbuild@0.23.0
+
+      - name: Install Linux build files
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libx11-dev libxkbcommon-dev libwayland-dev
+
+      - name: Check tag
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          package_version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "pmd-app") | .version')
+          if [ "$RELEASE_TAG" != "v$package_version" ]; then
+            echo "Tag must be v$package_version"
+            exit 1
+          fi
+
+      - name: Test
+        run: cargo test --workspace --all-targets --locked
+
+      - name: Build Linux
+        run: cargo build -p pmd-app --release --locked
+
+      - name: Build Windows
+        run: cargo zigbuild -p pmd-app --release --locked --target x86_64-pc-windows-gnu
+
+      - name: Pack files
+        run: |
+          mkdir dist
+          install -m 755 target/release/pmd-app dist/pmdmini-linux-x86_64
+          install -m 755 target/x86_64-pc-windows-gnu/release/pmd-app.exe dist/pmdmini-windows-x86_64.exe
+          cp README.md NOTICE dist/
+          cd dist
+          sha256sum pmdmini-linux-x86_64 pmdmini-windows-x86_64.exe README.md NOTICE > SHA256SUMS.txt
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" dist/* --clobber
+          else
+            gh release create "$RELEASE_TAG" dist/* --target "$GITHUB_SHA" --generate-notes --title "pmdmini-rs ${RELEASE_TAG#v}"
+          fi
+
+      - name: Remove old releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          mapfile -t old_tags < <(gh release list --limit 100 --json tagName --jq '.[5:] | .[].tagName')
+          for old_tag in "${old_tags[@]}"; do
+            if [ "$old_tag" != "$RELEASE_TAG" ]; then
+              gh release delete "$old_tag" --yes
+            fi
+          done
