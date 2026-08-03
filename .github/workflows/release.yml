@@ -80,7 +80,7 @@ jobs:
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" dist/* --clobber
           else
-            gh release create "$RELEASE_TAG" dist/* --target "$GITHUB_SHA" --generate-notes --title "pmdmini-rs ${RELEASE_TAG#v}"
+            gh release create "$RELEASE_TAG" dist/* --generate-notes --title "pmdmini-rs ${RELEASE_TAG#v}"
           fi
 
       - name: Remove old releases
