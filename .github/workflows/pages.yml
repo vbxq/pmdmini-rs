@@ -42,7 +42,7 @@ jobs:
         run: cargo install trunk --locked --version 0.21.14
 
       - name: Build Pages bundle
-        run: trunk build --release --public-url "/pmdmini-rs/"
+        run: trunk build --release --public-url "/"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
