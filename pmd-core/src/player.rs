@@ -5,7 +5,7 @@ use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
 
-use crate::opna::{ChipRenderer, RegisterWrite};
+use crate::opna::{ChipRenderer, RegisterWrite, PMD_PSG_MIX_GAIN};
 use crate::pmd;
 use crate::pmd::channel::ChannelKind;
 use crate::visual::{
@@ -14,7 +14,6 @@ use crate::visual::{
 };
 
 const OPNA_CLOCK_HZ: u32 = 7_987_200;
-const PMD_PSG_VOLUME_NEG18: i32 = 23_253;
 const DEFAULT_REGISTER_WAIT_NS: u64 = 30_000;
 const OPNA_SOURCE_RATE: u64 = 55_466;
 
@@ -371,7 +370,7 @@ impl Player {
     fn reset_renderer(&mut self) {
         let mut chip = ChipRenderer::new(OPNA_CLOCK_HZ, 44_100, false)
             .expect("sample rate was validated before renderer creation");
-        chip.set_psg_volume(PMD_PSG_VOLUME_NEG18);
+        chip.set_psg_volume(PMD_PSG_MIX_GAIN);
         if let Some(bank) = self.companion_banks.adpcm.as_ref() {
             let memory = adpcm_memory_image(bank);
             chip.chip_mut().set_adpcm_a_memory(&memory);

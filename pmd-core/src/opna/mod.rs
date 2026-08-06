@@ -32,6 +32,9 @@ mod resampler;
 pub(crate) mod tables;
 mod trace;
 
+/// Fixed-point gain used to balance the PMD SSG mix against the FM output.
+pub const PMD_PSG_MIX_GAIN: i32 = 16_384;
+
 pub use renderer::ChipRenderer;
 pub use replay::RegisterReplay;
 pub use trace::{

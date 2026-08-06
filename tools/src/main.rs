@@ -7,12 +7,13 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process;
 
-use pmd_core::opna::{compare_register_traces, parse_trace_csv, ChipRenderer, RegisterWrite};
+use pmd_core::opna::{
+    compare_register_traces, parse_trace_csv, ChipRenderer, RegisterWrite, PMD_PSG_MIX_GAIN,
+};
 use pmd_core::{FileProvider, Player};
 
 const OPNA_CLOCK_HZ: u32 = 7_987_200;
 
-const PMD_PSG_VOLUME_NEG18: i32 = 23_253;
 const DEFAULT_REGISTER_WAIT_NS: u64 = 30_000;
 
 #[derive(Debug)]
@@ -114,7 +115,7 @@ fn run() -> Result<(), String> {
 
     let mut renderer = ChipRenderer::new(OPNA_CLOCK_HZ, options.rate, options.interpolation)
         .ok_or_else(|| format!("invalid output rate {}", options.rate))?;
-    renderer.set_psg_volume(PMD_PSG_VOLUME_NEG18);
+    renderer.set_psg_volume(PMD_PSG_MIX_GAIN);
     let mut register_wait = RegisterWait::new(options.rate, options.initial_count2);
     let mut wait_queue = VecDeque::new();
 
